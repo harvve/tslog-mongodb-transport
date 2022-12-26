@@ -1,0 +1,68 @@
+{
+  "name": "@harvve/tslog-mongodb-transport",
+  "version": "1.0.0",
+  "description": "Send logs to mongodb",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "test": "mocha --config .mocharc.js --exit",
+    "test:watch": "mocha --watch --config .mocharc.js",
+    "precoverage": "rimraf .nyc_output coverage",
+    "coverage": "nyc mocha --config .mocharc.js --exit",
+    "watch": "tsc -w",
+    "prebuild": "rimraf ./lib",
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harvve/tslog-mongodb-transport.git"
+  },
+  "keywords": [
+    "mongodb",
+    "tslog"
+  ],
+  "author": "Michal Siemienowicz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/harvve/tslog-mongodb-transport/issues"
+  },
+  "homepage": "https://github.com/harvve/tslog-mongodb-transport#readme",
+  "volta": {
+    "node": "18.10.0",
+    "npm": "8.19.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.4",
+    "@types/chai-spies": "^1.0.3",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.9",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "chai": "^4.3.7",
+    "chai-spies": "^1.0.0",
+    "eslint": "^8.28.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^4.3.8",
+    "mocha": "^10.1.0",
+    "mongodb": "^4.12.1",
+    "mongodb-memory-server": "^8.10.2",
+    "nyc": "^15.1.0",
+    "prettier": "^2.8.0",
+    "pretty-quick": "^3.1.3",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "tslog": "^4.4.4",
+    "typescript": "^4.9.3"
+  }
+}
