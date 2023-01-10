@@ -12,8 +12,8 @@
     "allowJs": false,
     "declaration": true,
     "removeComments": false,
-    "types": ["tslog"]
+    "types": ["tslog", "mongodb"]
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

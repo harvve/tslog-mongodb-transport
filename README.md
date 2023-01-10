@@ -1,8 +1,5 @@
-# TODO
-Przerobić pod mongodb
-
 # tslog-mongodb-transport
-> Send logs to mongodb
+The library allows logs to be stored in the mongodb timeseries collection.
 
 <a name="readme-top"></a>
 
@@ -34,49 +31,63 @@ Przerobić pod mongodb
 
 ## About The Project
 
-This library provides a transporter to configure and send logs from tslog via telegraph directly to [InfluxDB2](https://docs.influxdata.com/influxdb/v2.5/). This allows you to aggregate the logs in one place in this case in InfluxDB2. The stored log data can be [visualized](https://docs.influxdata.com/influxdb/v2.5/visualize-data/) and [alerts](https://docs.influxdata.com/influxdb/v2.5/monitor-alert/) can be set up in the InfluxDB2 UI with the built-in Chronograf and Kapacitor tools.
+This library provides a transporter that allows logs to be written to the timeseries collection in MongoDB.
+The transporter simplifies configuration and ensures optimal writes to the database through log batching.
+It provides flexible out-of-the-box configuration and the ability to customise parameters according to your needs.
 
 ### Installation
 
+> **Requires: MongoDB >= v5.0, [ mongodb >= v4](https://www.npmjs.com/package/mongodb) driver and tslog >= v4**
+
 ```sh
-npm i @harvve/tslog-influxdb-transport
+npm i @harvve/tslog-mongodb-transport
 ```
 
 ## Usage
-Attach transport provider to tslog instance.
+Attach transport to tslog instance.
 ```typescript
 import { Logger } from 'tslog';
-import { Transporter } from '@harvve/tslog-influxdb-transport';
+import { MongoClient } from 'mongodb';
+import { Transporter } from '@harvve/tslog-mongodb-transport';
 
-const transporter = new Transporter({
-  address: 'localhost',
-  port: 3123,
-  socketType: 'udp4',
-  measurementName: 'myLoggerLogs',
-  minLevel: 'info'
-});
+async function main(): Promise<void> {
 
-const logger: Logger = new Logger({
-  name: 'myLogger',
-  attachedTransports: [this.transporter.getTransportProvider()]
-});
+  const client = await new MongoClient('mongodb://localhost:27017').connect();
 
-logger.info('Hello!');
+  const mongodbTransporter = new Transporter({ db: client.db('logs_db') });
+
+  const logger = new Logger({
+    // on production set to true for better performance
+    // https://tslog.js.org/#/?id=hidelogpositionforproduction-default-false
+    hideLogPositionForProduction: false,
+    argumentsArrayName: 'argumentsArray',  // default key name used by Transporter
+    metaProperty: 'metadata', // default key name used by Transporter
+    attachedTransports: [mongodbTransporter.transport.bind(mongodbTransporter)]
+  });
+
+  logger.info('Hello!');
+}
 ```
 
-_Check out working example --> [View Demo](https://github.com/harvve/tslog-influxdb-transport-demo)_
+_Check out working example --> [View Demo](https://github.com/harvve/tslog-mongodb-transport-demo)_
 
 
 ### Settings
-All possible settings are defined in the ITransporterOptions interface and modern IDEs will provide auto-completion accordingly.
+All possible settings are defined in the `ITransporterOptions` interface and modern IDEs will provide auto-completion accordingly.
 
-* **port** - `number` - Destination port (port on which the telegraf listens)
-* **address** - `string` - Destination host name or IP address
-* **socketType** - `udp4 | udp6` - Type of socket
-* **measurementName** - `string` - Name of measurement (in influxdb2 bucket)
-* **minLevel** - `TLogLevelName` - Minimum logging level to transport - default 'debug'
-* **fieldKeys** - `Array` - List of field keys - If no keys are provided, the default ones will be used
-* **tagKeys** - `Array` - List of tag keys - with string value only - If keys are not specified, default ones will be used
+| Key | Type | Requirement | Description | Default |
+|:---:|:---:|:---:|:---:|:---:|
+|**db**| `Db` | *required* | class that represents a MongoDB Database (from `mongodb` lib) | --- |
+|**collectionName**| `string` | *optional* | the name of collection in mongodb | `logs` |
+|**granuality**| `seconds` `minutes` `hours` | *optional* | the timeseries data granularity | `seconds` |
+|**argumentsArrayName**| `string` | *optional* | the logger arguments property key name | `argumentsArray` |
+|**bucketSize**| `number` | *optional* | the size of the bucket with logs suitable for writing | `5000` |
+|**updateInterval**| `number` | *optional* | the number of seconds between logs that must elapse to record an incomplete bucket | `1sec` |
+|**logTTL**| `number` | *optional* | the lifetime (in seconds) of the document in the collection | `2592000sec (30days)` |
+|**onErrorCallback(err: unknown)**| `function` | *optional* | callback function called when an error occurs | --- |
+|**onBeforeWriteCallback(bucketLength: number)**| `function` | *optional* | callback function called before write (*`bucketLength - current length of items in bucket`*) | --- |
+|**onAfterWriteCallback(insertResult: InsertManyResult<Document>, bucketLength: number)**| `function` | *optional* | callback function called after successful writing (*`insertResult - insert stats, bucketLength - current length of items in bucket`*) | --- |
+|**onFinallyWriteCallback(bucketLength: number)**| `function` | *optional* | callback function called when recording has been completed (*`bucketLength - current length of items in bucket`*) | --- |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -106,28 +117,25 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [https://github.com/harvve/tslog-influxdb-transport](https://github.com/harvve/tslog-influxdb-transport)
+Project Link: [https://github.com/harvve/tslog-mongodb-transport](https://github.com/harvve/tslog-mongodb-transport)
 
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 * [tslog docs](https://tslog.js.org/#/)
-* [InfluxDB2 docs](https://docs.influxdata.com/influxdb/v2.5/)
-* [Telegraf docs](https://docs.influxdata.com/telegraf/v1.24/)
-* [node.js dgram](https://nodejs.org/api/dgram.html#class-dgramsocket)
-
+* [MongoDB Timeseries](https://www.mongodb.com/docs/manual/core/timeseries-collections/)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/github/contributors/harvve/tslog-influxdb-transport.svg?style=for-the-badge
-[contributors-url]: https://github.com/harvve/tslog-influxdb-transport/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/harvve/tslog-influxdb-transport.svg?style=for-the-badge
-[forks-url]: https://github.com/harvve/tslog-influxdb-transport/network/members
-[stars-shield]: https://img.shields.io/github/stars/harvve/tslog-influxdb-transport.svg?style=for-the-badge
-[stars-url]: https://github.com/harvve/tslog-influxdb-transport/stargazers
-[issues-shield]: https://img.shields.io/github/issues/harvve/tslog-influxdb-transport.svg?style=for-the-badge
-[issues-url]: https://github.com/harvve/tslog-influxdb-transport/issues
-[license-shield]: https://img.shields.io/github/license/harvve/tslog-influxdb-transport.svg?style=for-the-badge
-[license-url]: https://github.com/harvve/tslog-influxdb-transport/blob/main/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/harvve/tslog-mongodb-transport.svg?style=for-the-badge
+[contributors-url]: https://github.com/harvve/tslog-mongodb-transport/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/harvve/tslog-mongodb-transport.svg?style=for-the-badge
+[forks-url]: https://github.com/harvve/tslog-mongodb-transport/network/members
+[stars-shield]: https://img.shields.io/github/stars/harvve/tslog-mongodb-transport.svg?style=for-the-badge
+[stars-url]: https://github.com/harvve/tslog-mongodb-transport/stargazers
+[issues-shield]: https://img.shields.io/github/issues/harvve/tslog-mongodb-transport.svg?style=for-the-badge
+[issues-url]: https://github.com/harvve/tslog-mongodb-transport/issues
+[license-shield]: https://img.shields.io/github/license/harvve/tslog-mongodb-transport.svg?style=for-the-badge
+[license-url]: https://github.com/harvve/tslog-mongodb-transport/blob/main/LICENSE.txt

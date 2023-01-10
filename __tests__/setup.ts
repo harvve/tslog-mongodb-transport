@@ -1,22 +1,43 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Db, MongoClient } from 'mongodb';
 
-const testState: { db?: Db; client?: MongoClient; memmongo?: MongoMemoryServer } = {};
+export interface ITestState {
+  db: Db;
+  client: MongoClient;
+  memongo?: MongoMemoryServer;
+}
+const state: ITestState = {} as ITestState;
 
-export const getTestDB = async (): Promise<Db> => {
-  if (testState?.db && testState?.client) {
+export const getState = async (): Promise<ITestState> => {
+  if (state?.db && state?.client) {
     console.log('Reuse state');
-    return testState.db;
+    return state;
   }
 
-  testState.memmongo = await MongoMemoryServer.create();
-  const mongoClient = await new MongoClient(testState.memmongo.getUri()).connect();
-  testState.db = mongoClient.db('', { ignoreUndefined: true });
-  testState.client = mongoClient;
-  return testState.db;
+  let mongoUrl = process.env.MONGODB_URL;
+  if (!mongoUrl) {
+    state.memongo = await MongoMemoryServer.create();
+    mongoUrl = state.memongo.getUri();
+  }
+  const mongoClient = await new MongoClient(mongoUrl).connect();
+  state.client = mongoClient;
+  state.db = mongoClient.db('test_db');
+
+  return state;
 };
 
 export const closeMemDb = async (): Promise<void> => {
-  await testState.memmongo?.stop();
-  console.log('DB in memory closed');
+  if (process.env.MONGODB_URL) {
+    await state.db.dropDatabase();
+    await state.client.close(true);
+  }
+  await state.memongo?.stop({ doCleanup: true });
+  console.log('DB closed');
 };
+
+export const wait = async (ms: number): Promise<void> =>
+  new Promise((res) => {
+    setTimeout(() => {
+      res();
+    }, ms);
+  });
