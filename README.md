@@ -1,6 +1,8 @@
 # tslog-mongodb-transport
 The library allows logs to be stored in the mongodb timeseries collection.
 
+[![Build & Test](https://github.com/harvve/tslog-mongodb-transport/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/harvve/tslog-mongodb-transport/actions/workflows/build.yml)
+
 <a name="readme-top"></a>
 
 [![Contributors][contributors-shield]][contributors-url]
